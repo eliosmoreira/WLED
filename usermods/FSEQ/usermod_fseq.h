@@ -35,7 +35,8 @@
 
 #ifdef WLED_USE_SD_SPI
   #ifndef SPI_PORT_DEFINED
-    inline SPIClass spiPort = SPIClass(VSPI);
+    //inline SPIClass spiPort = SPIClass(VSPI);
+    SPIClass spiPort = SPIClass(VSPI);
     #define SPI_PORT_DEFINED
   #endif
 #endif
@@ -168,14 +169,48 @@ public:
   static int8_t configPinPoci;
   static int8_t configPinPico;
 #endif
+
+bool handleButton(uint8_t b) override {
+  yield();
+  if (
+       buttonType[b] == BTN_TYPE_NONE
+    || buttonType[b] == BTN_TYPE_RESERVED
+    || buttonType[b] == BTN_TYPE_PIR_SENSOR
+    || buttonType[b] == BTN_TYPE_ANALOG
+    || buttonType[b] == BTN_TYPE_ANALOG_INVERTED) {
+    return false;
+  }
+
+  // Get first moment only
+  if (isButtonPressed(b) && !buttonPressedBefore[b]) {
+    buttonPressedBefore[b] = true;
+    buttonPressedTime[b] = millis();
+    return true;
+  }
+  else if(!isButtonPressed(b) && buttonPressedBefore[b] // released
+      && (millis() - buttonPressedTime[b] > 200)) {     // debounce
+    static char fileIndex = '0';
+    fileIndex++;
+    const String fileNameS = "/cue" + String(fileIndex) + ".fseq";
+    const char* fileName = fileNameS.c_str();
+    
+    if(SD_ADAPTER.exists(fileName)){
+      FSEQPlayer::loadRecording(fileName, 0, uint16_t(-1), 0.0f); // 1.0f for looping
+    }
+    else fileIndex = '0';
+
+    buttonPressedBefore[b] = false;
+  }
+  return true;
+}
 };
 
 // Provide a usermod name for config storage
 const char UsermodFseq::_name[] PROGMEM = "usermod FSEQ sd card";
 
 #ifdef WLED_USE_SD_SPI
-int8_t UsermodFseq::configPinSourceSelect = 5;
-int8_t UsermodFseq::configPinSourceClock  = 18;
-int8_t UsermodFseq::configPinPoci         = 19;
-int8_t UsermodFseq::configPinPico         = 23;
+int8_t UsermodFseq::configPinSourceSelect = 19;
+int8_t UsermodFseq::configPinSourceClock  = 4;
+int8_t UsermodFseq::configPinPoci         = 5;
+int8_t UsermodFseq::configPinPico         = 18;
 #endif
