@@ -103,9 +103,6 @@ bool FSEQPlayer::stopBecauseAtTheEnd() {
       realtimeLock(10, REALTIME_MODE_INACTIVE);
       recordingFile.close();
       clearLastPlayback();
-      /* strip.setTransitionMode(FX_MODE_STATIC);
-      effectCurrent = 0;
-      colorUpdated(CALL_MODE_DIRECT_CHANGE); */
 
       effectSpeed = 0;       // Prevents effect speed from causing transitions
       transitionDelay = 0;   // Stops transition effects

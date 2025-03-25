@@ -194,10 +194,17 @@ bool handleButton(uint8_t b) override {
     const String fileNameS = "/cue" + String(fileIndex) + ".fseq";
     const char* fileName = fileNameS.c_str();
     
-    if(SD_ADAPTER.exists(fileName)){
+    if(SD_ADAPTER.exists(fileName)) {
       FSEQPlayer::loadRecording(fileName, 0, uint16_t(-1), 0.0f); // 1.0f for looping
     }
-    else fileIndex = '0';
+    else {
+      fileIndex = '1';
+      const String fileNameS = "/cue" + String(fileIndex) + ".fseq";
+      const char* fileName = fileNameS.c_str();
+      if(SD_ADAPTER.exists(fileName)) {
+        FSEQPlayer::loadRecording(fileName, 0, uint16_t(-1), 0.0f); // 1.0f for looping
+      }
+    }
 
     buttonPressedBefore[b] = false;
   }
