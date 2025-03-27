@@ -237,3 +237,17 @@ void FSEQPlayer::syncPlayback(float secondsElapsed) {
     DEBUG_PRINTF("[FSEQ] Sync: No adjustment needed (current frame: %lu, expected: %lu)\n", frame, expectedFrame);
   }
 }
+
+void FSEQPlayer::hardStop(){
+  if(isPlaying()){    
+    realtimeLock(10, REALTIME_MODE_INACTIVE);
+    recordingFile.close();
+    clearLastPlayback();
+
+    effectSpeed = 0;       // Prevents effect speed from causing transitions
+    transitionDelay = 0;   // Stops transition effects
+    briT = 0;             // Stops brightness transitions
+    effectCurrent = 0;    // Forces solid mode
+    colorUpdated(CALL_MODE_DIRECT_CHANGE);
+  }
+}

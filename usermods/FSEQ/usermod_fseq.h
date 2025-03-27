@@ -70,6 +70,11 @@ public:
     
     // Register web endpoints defined in WebUIManager
     webUI.registerEndpoints();
+
+    // Initial strip things
+    strip.fill(0);
+    strip.setTransition(0);
+    strip.show();
   }
   
   // Loop function called continuously
@@ -190,27 +195,73 @@ bool handleButton(uint8_t b) override {
   else if(!isButtonPressed(b) && buttonPressedBefore[b] // released
       && (millis() - buttonPressedTime[b] > 200)) {     // debounce
     static char fileIndex = '0';
-    fileIndex++;
-    const String fileNameS = "/cue" + String(fileIndex) + ".fseq";
-    const char* fileName = fileNameS.c_str();
     
-    if(SD_ADAPTER.exists(fileName)) {
-      FSEQPlayer::loadRecording(fileName, 0, uint16_t(-1), 0.0f); // 1.0f for looping
-    }
-    else {
-      fileIndex = '1';
-      const String fileNameS = "/cue" + String(fileIndex) + ".fseq";
-      const char* fileName = fileNameS.c_str();
-      if(SD_ADAPTER.exists(fileName)) {
-        FSEQPlayer::loadRecording(fileName, 0, uint16_t(-1), 0.0f); // 1.0f for looping
-      }
-    }
-
+    if(b == 0) togglePlay(fileIndex);
+    else if(b == 1) playNextFile(fileIndex);
+    else if(b == 2) playPrevFile(fileIndex);
+    
     buttonPressedBefore[b] = false;
+    return false;
   }
   return true;
 }
+
+void togglePlay(char& fileIndex){
+  if(FSEQPlayer::isPlaying()){
+    FSEQPlayer::hardStop();
+    DEBUG_PRINTF(">>>>> Stop\n");
+  }
+  else {
+    if(fileIndex == '0')
+      fileIndex = '1';
+    const String fileName = "/cue" + String(fileIndex) + ".fseq";
+    const char* fileNameC = fileName.c_str();
+    if(SD_ADAPTER.exists(fileNameC))
+      FSEQPlayer::loadRecording(fileNameC, 0, uint16_t(-1), 0.0f); // 1.0f for looping
+    
+    DEBUG_PRINTF(">>>>> Play cue%c.fseq\n", fileIndex);
+  }
+}
+
+void playNextFile(char& fileIndex){
+  fileIndex++;
+  const String fileName = "/cue" + String(fileIndex) + ".fseq";
+  const char* fileNameC = fileName.c_str();
+  
+  if(!SD_ADAPTER.exists(fileNameC)) {
+    fileIndex--;
+    return;
+  }
+  
+  // Play it
+  FSEQPlayer::loadRecording(fileNameC, 0, uint16_t(-1), 0.0f); // 1.0f for looping
+  DEBUG_PRINTF(">>>>> Playing next: cue%c.fseq\n", fileIndex);
+  
+  return;
+}
+
+void playPrevFile(char& fileIndex){
+  if(fileIndex == '1')
+    return;
+
+  fileIndex--;
+  const String fileName = "/cue" + String(fileIndex) + ".fseq";
+  const char* fileNameC = fileName.c_str();
+
+  if(!SD_ADAPTER.exists(fileNameC)) {
+    fileIndex++;
+    return;
+  }
+  
+  // Play it
+  FSEQPlayer::loadRecording(fileNameC, 0, uint16_t(-1), 0.0f); // 1.0f for looping
+  DEBUG_PRINTF(">>>>> Playing prev: cue%c.fseq\n", fileIndex);
+  return;
+}
+
 };
+
+
 
 // Provide a usermod name for config storage
 const char UsermodFseq::_name[] PROGMEM = "usermod FSEQ sd card";

@@ -38,6 +38,7 @@ public:
   static void clearLastPlayback();
   static void syncPlayback(float secondsElapsed);
   static bool isPlaying();
+  static void hardStop();
 
 private:
   FSEQPlayer() {}
