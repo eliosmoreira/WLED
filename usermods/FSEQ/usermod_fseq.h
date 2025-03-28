@@ -1,5 +1,7 @@
 #pragma once
 
+#define WLED_USE_TM1637
+
 #ifndef USED_STORAGE_FILESYSTEMS
   #ifdef WLED_USE_SD_SPI
     #define USED_STORAGE_FILESYSTEMS "SD SPI, LittleFS"
@@ -56,18 +58,29 @@ private:
   WebUIManager webUI; // Web UI Manager module (handles endpoints)
   static const char _name[]; // for storing usermod name in config
   TM1637TinyDisplay *display;
+  uint8_t mIsPlaying = false;
+  uint8_t err = false;
 
 public:
   // Setup function called once at startup
   void setup() {
     DEBUG_PRINTF("[%s] Usermod loaded\n", FPSTR(_name));
+
+    display = new TM1637TinyDisplay(27, 26);
+    display->begin();
+    display->setBrightness(BRIGHT_HIGH);
+    display->clear();
+    
     
     // Initialize SD card using SDManager
     SDManager sd;
     if (!sd.begin()) {
       DEBUG_PRINTF("[%s] SD initialization FAILED.\n", FPSTR(_name));
+      display->showString("Erro");
+      err = true;
     } else {
       DEBUG_PRINTF("[%s] SD initialization successful.\n", FPSTR(_name));
+      display->showString("OLA");
     }
     
     // Register web endpoints defined in WebUIManager
@@ -78,17 +91,19 @@ public:
     strip.setTransition(0);
     strip.show();
 
-    display = new TM1637TinyDisplay(27, 26);
-    
-    display->begin();
-    display->setBrightness(BRIGHT_HIGH);
-    display->showString(" OLA");
   }
   
   // Loop function called continuously
   void loop() {
     // Process FSEQ playback (includes UDP sync commands)
     FSEQPlayer::handlePlayRecording();
+    if(FSEQPlayer::isPlaying() != mIsPlaying){
+      mIsPlaying = FSEQPlayer::isPlaying();
+      if(mIsPlaying)
+        display->showString("P", 1, 0, 0b10000000);
+      else
+        display->showString("S", 1, 0, 0b10000000);
+    }
   }
   
   // Unique ID for the usermod
@@ -218,6 +233,9 @@ void togglePlay(char& fileIndex){
   if(FSEQPlayer::isPlaying()){
     FSEQPlayer::hardStop();
     DEBUG_PRINTF(">>>>> Stop\n");
+    display->clear();
+    display->showString("S", 1, 0, 0b10000000);
+    display->showNumber(fileIndex - 48, 1, 2, 2);
   }
   else {
     if(fileIndex == '0')
@@ -228,6 +246,9 @@ void togglePlay(char& fileIndex){
       FSEQPlayer::loadRecording(fileNameC, 0, uint16_t(-1), 0.0f); // 1.0f for looping
     
     DEBUG_PRINTF(">>>>> Play cue%c.fseq\n", fileIndex);
+    display->clear();
+    display->showString("P", 1, 0, 0b10000000);
+    display->showNumber(fileIndex - 48, 1, 2, 2);
   }
 }
 
@@ -244,6 +265,9 @@ void playNextFile(char& fileIndex){
   // Play it
   FSEQPlayer::loadRecording(fileNameC, 0, uint16_t(-1), 0.0f); // 1.0f for looping
   DEBUG_PRINTF(">>>>> Playing next: cue%c.fseq\n", fileIndex);
+  display->clear();
+  display->showString("P", 1, 0, 0b10000000);
+  display->showNumber(fileIndex - 48, 1, 2, 2);
   
   return;
 }
@@ -264,6 +288,10 @@ void playPrevFile(char& fileIndex){
   // Play it
   FSEQPlayer::loadRecording(fileNameC, 0, uint16_t(-1), 0.0f); // 1.0f for looping
   DEBUG_PRINTF(">>>>> Playing prev: cue%c.fseq\n", fileIndex);
+  
+  display->clear();
+  display->showString("P", 1, 0, 0b10000000);
+  display->showNumber(fileIndex - 48, 1, 2, 2);
   return;
 }
 
