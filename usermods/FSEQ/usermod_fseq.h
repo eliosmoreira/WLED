@@ -48,12 +48,14 @@
 #include "../usermods/FSEQ/sd_manager.cpp"
 #include "../usermods/FSEQ/web_ui_manager.h"
 #include "../usermods/FSEQ/web_ui_manager.cpp"
+#include "TM1637TinyDisplay.h"
 
 // Usermod for FSEQ playback with UDP and web UI support
 class UsermodFseq : public Usermod {
 private:
   WebUIManager webUI; // Web UI Manager module (handles endpoints)
   static const char _name[]; // for storing usermod name in config
+  TM1637TinyDisplay *display;
 
 public:
   // Setup function called once at startup
@@ -75,6 +77,12 @@ public:
     strip.fill(0);
     strip.setTransition(0);
     strip.show();
+
+    display = new TM1637TinyDisplay(27, 26);
+    
+    display->begin();
+    display->setBrightness(BRIGHT_HIGH);
+    display->showString(" OLA");
   }
   
   // Loop function called continuously
