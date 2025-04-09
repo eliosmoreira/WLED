@@ -1,6 +1,7 @@
 #pragma once
 
 #define WLED_USE_TM1637
+#define PIN_MOTOR 12
 
 #ifndef USED_STORAGE_FILESYSTEMS
   #ifdef WLED_USE_SD_SPI
@@ -91,6 +92,9 @@ public:
     strip.setTransition(0);
     strip.show();
 
+    // Motor
+    pinMode(PIN_MOTOR, OUTPUT);
+    digitalWrite(PIN_MOTOR, LOW);
   }
   
   // Loop function called continuously
@@ -236,6 +240,9 @@ void togglePlay(char& fileIndex){
     display->clear();
     display->showString("S", 1, 0, 0b10000000);
     display->showNumber(fileIndex - 48, 1, 2, 2);
+    // Motor
+    DEBUG_PRINTF(">>>>> Toggle Motor LOW");
+    digitalWrite(PIN_MOTOR, LOW);
   }
   else {
     if(fileIndex == '0')
@@ -249,6 +256,12 @@ void togglePlay(char& fileIndex){
     display->clear();
     display->showString("P", 1, 0, 0b10000000);
     display->showNumber(fileIndex - 48, 1, 2, 2);
+    // Motor
+    
+    if(fileIndex == '2'){
+      DEBUG_PRINTF(">>>>> Toggle Motor HIGH");
+      digitalWrite(PIN_MOTOR, HIGH);
+    }
   }
 }
 
@@ -268,6 +281,16 @@ void playNextFile(char& fileIndex){
   display->clear();
   display->showString("P", 1, 0, 0b10000000);
   display->showNumber(fileIndex - 48, 1, 2, 2);
+  
+  // Motor
+  if(fileIndex == '2'){
+    DEBUG_PRINTF(">>>>> Next Motor HIGH");
+    digitalWrite(PIN_MOTOR, HIGH);
+  }
+  else{
+    DEBUG_PRINTF(">>>>> Next Motor LOW");
+    digitalWrite(PIN_MOTOR, LOW);
+  }
   
   return;
 }
@@ -292,6 +315,16 @@ void playPrevFile(char& fileIndex){
   display->clear();
   display->showString("P", 1, 0, 0b10000000);
   display->showNumber(fileIndex - 48, 1, 2, 2);
+  
+  // Motor
+  if(fileIndex == '2'){
+    DEBUG_PRINTF(">>>>> Prev Motor HIGH");
+    digitalWrite(PIN_MOTOR, HIGH);
+  }
+  else{
+    DEBUG_PRINTF(">>>>> Prev Motor LOW");
+    digitalWrite(PIN_MOTOR, LOW);
+  }
   return;
 }
 
