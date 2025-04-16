@@ -94,7 +94,7 @@ public:
 
     // Motor
     pinMode(PIN_MOTOR, OUTPUT);
-    digitalWrite(PIN_MOTOR, LOW);
+    digitalWrite(PIN_MOTOR, HIGH);  // 4n25 is pulled high. (motor is ON when this pin is LOW)
   }
   
   // Loop function called continuously
@@ -241,8 +241,8 @@ void togglePlay(char& fileIndex){
     display->showString("S", 1, 0, 0b10000000);
     display->showNumber(fileIndex - 48, 1, 2, 2);
     // Motor
-    DEBUG_PRINTF(">>>>> Toggle Motor LOW");
-    digitalWrite(PIN_MOTOR, LOW);
+    DEBUG_PRINTF(">>>>> Toggle Motor HIGH");
+    digitalWrite(PIN_MOTOR, HIGH);
   }
   else {
     if(fileIndex == '0')
@@ -258,9 +258,9 @@ void togglePlay(char& fileIndex){
     display->showNumber(fileIndex - 48, 1, 2, 2);
     // Motor
     
-    if(fileIndex == '2'){
-      DEBUG_PRINTF(">>>>> Toggle Motor HIGH");
-      digitalWrite(PIN_MOTOR, HIGH);
+    if(fileIndex != '2'){
+      DEBUG_PRINTF(">>>>> Toggle Motor LOW");
+      digitalWrite(PIN_MOTOR, LOW);
     }
   }
 }
